@@ -1,97 +1,18 @@
 <template>
-    <div class="navbar">
-        <!-- Fancy name on the left side -->
-        <div class="navbar-brand">
-            <i class="fas fa-square-poll-vertical fa-spin" style="font-size: 24px; margin-right: 10px"></i>
-            Live Voting
-        </div>
-        <!-- Right-side buttons -->
-        <div class="navbar-buttons">
-            <button class="dashboard-button" @click="openDashboard">Dashboard</button>
-            <button class="poll-button" @click="openModal">Create Poll</button>
-            <button class="logout-button" @click="triggerToast">Logout</button>
-        </div>
-        <div class="modal" :class="{ 'modal-open': isModalOpen }">
-            <div class="modal-content">
-                <form @submit.prevent="submitPoll">
-                    <!-- Poll Title -->
-                    <label class="input-label" for="question">Poll Title:</label>
-                    <div class="input-container">
-                        <input class="input-field" type="text" id="question" v-model="question" required
-                            placeholder="Enter Poll Title" />
-                    </div>
-
-                    <!-- Option Inputs -->
-                    <div class="option-inputs">
-                        <div class="option-input">
-                            <label for="option1">1:</label>
-                            <input type="text" id="option1" v-model="options[0]" required placeholder=" Option 1" />
-                        </div>
-                        <div class="option-input">
-                            <label for="option2">2:</label>
-                            <input type="text" id="option2" v-model="options[1]" required placeholder=" Option 2" />
-                        </div>
-
-                        <!-- Dynamic Option Inputs -->
-                        <div v-for="(option, index) in dynamicOptions" :key="index" class="option-input">
-                            <label :for="'option' + (index + 3)"> {{ index + 3 }}: </label>
-                            <input :type="'text'" :id="'option' + (index + 3)" v-model="dynamicOptions[index]"
-                                placeholder="Remove this option if not in use" required />
-                            <!-- Button to Remove Option -->
-                            <button type="button" @click="removeOption(index)">Remove</button>
-                        </div>
-
-                        <!-- Button to Add More Options -->
-                        <button type="button" class="addbutton" @click="addOption">
-                            Add Option
-                        </button>
-                    </div>
-
-                    <!-- Custom Timer Input -->
-                    <div class="custom-timer-input">
-                        <div class="timer-input">
-                            <label for="time-value">Enter Time:</label>
-                            <input type="number" id="time-value" v-model="timeValue" min="0" aria-label="Enter Time"
-                                placeholder="Enter Time" />
-                        </div>
-                        <div class="timer-input">
-                            <label for="time-unit">Select Time Unit:</label>
-                            <select id="time-unit" v-model="selectedTimeUnit" aria-label="Select Time Unit">
-                                <option value="hours">Hours</option>
-                                <option value="minutes">Minutes</option>
-                                <option value="seconds">Seconds</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="visibility-options">
-                        <label>Select Visibility:</label>
-                        <div class="radio-group">
-                            <!-- Public Option -->
-                            <label class="radio-label">
-                                <input type="radio" id="public" value="public" v-model="visibility" aria-label="Public" />
-                                <span class="radio-custom"></span>
-                                <span class="radio-text">Public</span>
-                            </label>
-
-                            <!-- Private Option -->
-                            <label class="radio-label">
-                                <input type="radio" id="private" value="private" v-model="visibility"
-                                    aria-label="Private" />
-                                <span class="radio-custom"></span>
-                                <span class="radio-text">Private</span>
-                            </label>
-                        </div>
-                    </div>
-                    <button type="submit">Create Poll</button>
-                    <button class="cancel" @click="closeModal">Cancel</button>
-                </form>
-            </div>
-        </div>
+    <Navbar />
+    <!-- Sorting Button -->
+    <div class="sort-button-container">
+        <label class="sort-label" for="poll-sort">Sort by:</label>
+        <select id="poll-sort" v-model="selectedSort">
+            <option value="all">All</option>
+            <option value="live">Live Polls</option>
+            <option value="expired">Expired Polls</option>
+        </select>
     </div>
     <!-- Poll Card -->
     <div class="poll-card-container">
-        <div class="poll-card" v-for="(poll, index) in polls" :key="index" :class="{ 'expired-poll': isPollExpired(poll) }">
+        <div class="poll-card" v-for="(poll, index) in sortedPolls" :key="index"
+            :class="{ 'expired-poll': isPollExpired(poll) }">
             <h3>{{ poll.question }}</h3>
             <div class="countdown-timer" :class="countdownTimerClass(poll)">{{ poll.countdownTimer }}</div>
 
@@ -112,16 +33,14 @@
         </div>
     </div>
 </template>
-
 <script>
 import axios from "axios";
 import { useToast } from "vue-toastification";
 import { useRouter } from "vue-router";
-// import Navbar from './components/Navbar.vue';
-
+import Navbar from './Navbar.vue';
 export default {
     name: "DashboardPage",
-    components: {},
+    components: { Navbar, },
     data() {
         return {
             isModalOpen: false,
@@ -139,6 +58,7 @@ export default {
             validTill: null, // Add a new property for the "Valid Till" time
             selectedOption: [],
             countdownTimers: [], // Store individual countdown timers for each poll
+            selectedSort: "all",
         };
     },
     mounted() {
@@ -196,6 +116,16 @@ export default {
                 }
             };
         },
+        sortedPolls() {
+            if (this.selectedSort === "all") {
+                return this.polls;
+            } else if (this.selectedSort === "live") {
+                return this.polls.filter(poll => !this.isPollExpired(poll));
+            } else if (this.selectedSort === "expired") {
+                return this.polls.filter(poll => this.isPollExpired(poll));
+            }
+            return this.polls; // Default to "All" if something unexpected is selected
+        },
     },
     methods: {
         startCountdown() {
@@ -232,7 +162,6 @@ export default {
         },
         closeModal() {
             this.isModalOpen = false;
-            // Clear the input fields and options
             this.question = "";
             this.options = ["", ""];
             this.dynamicOptions = [""];
@@ -247,6 +176,7 @@ export default {
                 visibility: this.visibility,
                 createdAt: now, // Store the creation time
                 validTill: new Date(now.getTime() + this.totalTimeInSeconds * 1000),
+                status: 'open', // Set the status to 'open' when creating the poll
             };
             // Calculate the "Valid Till" time by adding user-inputted time to the current date and time
             this.validTill = new Date(now.getTime() + this.totalTimeInSeconds * 1000);
@@ -341,362 +271,38 @@ export default {
 </script>
 
 <style scoped>
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #333;
-    color: white;
-    padding: 10px 20px;
-}
-
-.navbar-brand {
-    font-size: 24px;
+.sort-label {
     font-weight: bold;
-    font-family: cursive;
-}
-
-.navbar-buttons {
-    display: flex;
-    gap: 20px;
-}
-
-.option-inputs button[type="button"] {
-    padding: 5px 10px;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.option-inputs button[type="button"]:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-
-.dashboard-button {
-    background-color: #007bff;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.dashboard-button:hover {
-    background-color: #0056b3;
-
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.poll-button {
-    background-color: #28a745;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.poll-button:hover {
-    background-color: #1e995b;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.logout-button {
-    background-color: #dc3545;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-/* Add a hover effect */
-.logout-button:hover {
-    background-color: #c82333;
-    /* Slightly darker red on hover */
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Styles for the modal */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-open {
-    display: flex;
-}
-
-.modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    width: 80%;
-    max-width: 600px;
-    text-align: center;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.modal input {
-    margin-left: 15px;
-    width: 50%;
-    margin-bottom: 5px;
-    padding: 10px;
-}
-
-.modal button {
-    padding: 10px 20px;
-    margin-top: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.modal button.cancel {
-    background-color: #dc3545;
-}
-
-label {
-    color: black;
-}
-
-.modal-content label {
-    text-align: right;
     margin-right: 10px;
-}
-
-.modal-content input[type="text"] {
-    width: 65%;
-    margin-left: 10px;
-}
-
-.option-inputs .option-input button[type="button"] {
-    padding: 5px 10px;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    margin-left: 5px;
-}
-
-.option-inputs button[type="button"],
-.modal button,
-.modal button.cancel {
-    padding: 10px 20px;
-    margin: 10px 5px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.addbutton {
-    background-color: #28a745 !important;
-    color: white;
-}
-
-.option-inputs button[type="button"] {
-    color: white;
-}
-
-.modal button[type="submit"] {
-    background-color: #007bff;
-    color: white;
-}
-
-.modal button.cancel {
-    background-color: #dc3545;
-}
-
-/* Add a hover effect to all buttons */
-.option-inputs button[type="button"]:hover,
-.modal button:hover,
-.modal button.cancel:hover,
-.modal button[type="submit"]:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-open {
-    display: flex;
-}
-
-.modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    width: 80%;
-    /* Adjust the width as desired */
-    max-width: 600px;
-    /* Limit the maximum width if needed */
-    text-align: center;
-}
-
-/* Styles for the visibility options */
-.visibility-options {
-    display: flex;
-    align-items: center;
-    margin-top: 20px;
-}
-
-.visibility-options label {
     color: #333;
-    font-size: 16px;
-    margin-right: 10px;
 }
 
-/* Radio button styles */
-.radio-group {
-    align-items: center;
-}
-
-.radio-label input[type="radio"] {
-    display: none;
-}
-
-.radio-label {
+/* Style for the sorting button container */
+.sort-button-container {
     display: flex;
     align-items: center;
-    cursor: pointer;
+    justify-content: flex-end;
     margin-right: 20px;
-}
-
-.radio-custom {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #007bff;
-    border-radius: 50%;
-    margin-right: 5px;
-    position: relative;
-    transition: background-color 0.2s, border-color 0.2s;
-}
-
-.radio-label input[type="radio"]:checked+.radio-custom {
-    background-color: #007bff;
-    border-color: #007bff;
-}
-
-.radio-label input[type="radio"]:checked+.radio-custom::before {
-    width: 12px;
-    height: 12px;
-    background-color: #007bff;
-    border-radius: 50%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.radio-custom {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #007bff;
-    border-radius: 50%;
-    margin-right: 5px;
-    position: relative;
-}
-
-.radio-label input[type="radio"] {
-    display: none;
-}
-
-.visibility-options .radio-label:last-child {
-    margin-right: 0;
-}
-
-.visibility-options button[type="button"] {
-    padding: 10px 20px;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    margin-left: 20px;
-}
-
-.visibility-options button[type="button"]:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.visibility-options button.cancel {
-    background-color: #dc3545;
-    margin-left: 10px;
-}
-
-.option-inputs {
     margin-top: 10px;
 }
 
-.option-input {
-    align-items: center;
-}
-
-.option-input button[type="button"] {
-    padding: 5px 10px;
-    background-color: red;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.custom-timer-input {
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
-
-}
-
-/* Style for each timer input */
-.timer-input select,
-.timer-input input[type="number"] {
-    padding: 10px;
-    width: 60%;
-    /* Make the input fields take the full width */
+/* Style for the sorting button select element */
+#poll-sort {
+    margin: auto 5px;
+    padding: 5px;
     border: 1px solid #ddd;
     border-radius: 5px;
-    font-size: 14px;
     background-color: #fff;
-    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+
+/* Style the select element on focus */
+#poll-sort:focus {
+    outline: none;
+    border-color: #007bff;
+    background-color: #f8f8f8;
 }
 
 .poll-card-container {
@@ -861,67 +467,6 @@ label {
     font-family: "YourCustomFont", sans-serif;
     font-size: 13px;
     font-weight: bold;
-    color: #333;
-}
-
-.option-inputs {
-    margin-top: 10px;
-}
-
-.option-input {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.option-input label {
-    flex: 0 0 30px;
-
-    text-align: right;
-    margin-right: 10px;
-}
-
-.option-input input[type="text"] {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 14px;
-    background-color: #fff;
-    color: #333;
-}
-
-.option-input button[type="button"] {
-    padding: 5px 10px;
-    background-color: red;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.input-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.input-label {
-    text-align: right;
-    margin-right: 10px;
-    font-size: 20px;
-    color: #333;
-}
-
-.input-field {
-    flex: 1;
-    margin-left: 10px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 14px;
-    background-color: #fff;
     color: #333;
 }
 </style>

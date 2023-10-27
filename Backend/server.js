@@ -56,6 +56,8 @@ io.on("connection", (socket) => {
   });
 });
 
+app.use(cors({ origin: 'http://localhost:8080' }));
+
 http.listen(3000, function check(error) {
   if (error) {
     console.log("Server start error:", error);

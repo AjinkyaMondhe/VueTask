@@ -4,6 +4,7 @@ import Home from "../components/Home.vue";
 import Login from "../components/Login.vue";
 import Signup from "../components/Signup.vue";
 import Dashboard from "../components/Dashboard.vue";
+import MyPoll from "../components/MyPoll.vue";
 const routes = [
   {
     name: "HomeComponent",
@@ -24,6 +25,11 @@ const routes = [
     name: "DashboardPage",
     path: "/dashboard",
     component: Dashboard,
+  },
+  {
+    name: "MyPoll",
+    path: "/mypoll",
+    component: MyPoll,
   },
 ];
 

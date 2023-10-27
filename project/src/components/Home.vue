@@ -12,9 +12,8 @@
     </p>
     <div class="voting-system-image">
       <img src="../assets/voting.jpg" alt="Real-time Voting System" class="pulse-image" />
-
     </div>
-    <router-link to="/register">
+    <router-link to="/login">
       <button class="get-started-button">Get Started</button>
     </router-link>
     <p>
@@ -52,7 +51,6 @@ export default {
   box-sizing: border-box;
 }
 
-
 .landing-page {
   display: flex;
   flex-direction: column;
@@ -62,9 +60,7 @@ export default {
   margin: 0;
   padding: 30px;
   background-color: #fffdfd;
-  /* Set your desired background color */
   min-height: 100vh;
-  /* Ensure the page takes at least the full viewport height */
 }
 
 h1 {
@@ -94,30 +90,8 @@ p {
 }
 
 img {
-
   height: 50vh;
   width: 100%;
-}
-
-.bounding-image {
-  /* Set initial scale and transition properties */
-  transform: scale(1);
-  transition: transform 0.3s ease-in-out;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.1);
-    /* Adjust the scale factor as needed */
-  }
-
-  100% {
-    transform: scale(1);
-  }
 }
 
 .pulse-image {
