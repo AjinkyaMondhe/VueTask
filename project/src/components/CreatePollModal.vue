@@ -2,81 +2,87 @@
     <div class="navbar">
         <div class="modal" :class="{ 'modal-open': isModalOpen }">
             <div class="modal-content">
+                <h1>Create Poll</h1>
                 <form @submit.prevent="submitPoll">
-                    <!-- Poll Title -->
-                    <label class="input-label" for="question">Poll Title:</label>
-                    <div class="input-container">
-                        <input class="input-field" type="text" id="question" v-model="question" required
-                            placeholder="Enter Poll Title" />
-                    </div>
-                    <!-- Option Inputs -->
-                    <div class="option-inputs">
-                        <div class="option-input">
-                            <label for="option1">1:</label>
-                            <input type="text" id="option1" v-model="options[0]" required placeholder=" Option 1" />
-                        </div>
-                        <div class="option-input">
-                            <label for="option2">2:</label>
-                            <input type="text" id="option2" v-model="options[1]" required placeholder=" Option 2" />
-                        </div>
+                    <div class="modal-content-inner">
+                        <div class="sections-container">
+                            <!-- Left Section: Poll Title and Options -->
+                            <div class="left-section">
+                                <!-- <label class="input-label" for="question">Poll Title:</label> -->
+                                <div class="input-container">
+                                    <input class="input-field" type="text" id="question" v-model="question" required
+                                        placeholder="Enter a question for eg:- Who won the world cup 2023 ?" />
+                                </div>
+                                <div class="option-inputs">
+                                    <div class="option-input">
+                                        <!-- <label for="option1">1:</label> -->
+                                        <input type="text" id="option1" v-model="options[0]" required
+                                            placeholder=" Option 1" />
+                                    </div>
+                                    <div class="option-input">
+                                        <!-- <label for="option2">2:</label> -->
+                                        <input type="text" id="option2" v-model="options[1]" required
+                                            placeholder=" Option 2" />
+                                    </div>
 
-                        <!-- Dynamic Option Inputs -->
-                        <div v-for="(option, index) in dynamicOptions" :key="index" class="option-input">
-                            <div class="option-input-container">
-                                <label :for="'option' + (index + 3)"> {{ index + 3 }}: </label>
-                                <input :type="'text'" :id="'option' + (index + 3)" v-model="dynamicOptions[index]"
-                                    placeholder="Remove this option if not in use" required />
-                                <!-- Button to Remove Option -->
-                                <button type="button" @click="removeOption(index)">Remove</button>
+                                    <!-- Dynamic Option Inputs -->
+                                    <div v-for="(option, index) in dynamicOptions" :key="index" class="option-input">
+                                        <div class="option-input-container">
+                                            <!-- <label :for="'option' + (index + 3)"> {{ index + 3 }}:</label> -->
+                                            <input :type="'text'" :id="'option' + (index + 3)"
+                                                v-model="dynamicOptions[index]"
+                                                placeholder="Remove this option if not in use" required />
+                                            <!-- Button to Remove Option -->
+                                            <button type="button" @click="removeOption(index)">X</button>
+                                        </div>
+                                    </div>
+                                    <!-- Button to Add More Options -->
+                                    <button type="button" class="addbutton" @click="addOption">Add Option</button>
+                                </div>
+                            </div>
+                            <!-- Right Section: Timer and Visibility Options -->
+                            <div class="right-section">
+                                <div class="custom-timer-input">
+                                    <div class="timer-input1">
+                                        <label for="time-value">Enter Time:</label>
+                                        <input type="number" id="time-value" v-model="timeValue" min="0"
+                                            aria-label="Enter Time" placeholder="Enter Time" />
+                                    </div>
+                                    <div class="timer-input2">
+                                        <label for="time-unit">Time Unit:</label>
+                                        <select id="time-unit" v-model="selectedTimeUnit" aria-label="Select Time Unit">
+                                            <option value="hours">Hours</option>
+                                            <option value="minutes">Minutes</option>
+                                            <option value="seconds">Seconds</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="visibility-options" v-if="showInMypoll">
+                                    <label>Select Visibility:</label>
+                                    <div class="radio-group">
+                                        <!-- Public Option -->
+                                        <label class="radio-label">
+                                            <input type="radio" id="public" value="public" v-model="visibility"
+                                                aria-label="Public" />
+                                            <span class="radio-custom"></span>
+                                            <span class="radio-text">Public</span>
+                                        </label>
+                                        <!-- Private Option -->
+                                        <label class="radio-label">
+                                            <input type="radio" id="private" value="private" v-model="visibility"
+                                                aria-label="Private" />
+                                            <span class="radio-custom"></span>
+                                            <span class="radio-text">Private</span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
-
-
-                        <!-- Button to Add More Options -->
-                        <button type="button" class="addbutton" @click="addOption">
-                            Add Option
-                        </button>
                     </div>
-
-                    <!-- Custom Timer Input -->
-                    <div class="custom-timer-input">
-                        <div class="timer-input">
-                            <label for="time-value">Enter Time:</label>
-                            <input type="number" id="time-value" v-model="timeValue" min="0" aria-label="Enter Time"
-                                placeholder="Enter Time" />
-                        </div>
-                        <div class="timer-input">
-                            <label for="time-unit">Select Time Unit:</label>
-                            <select id="time-unit" v-model="selectedTimeUnit" aria-label="Select Time Unit">
-                                <option value="hours">Hours</option>
-                                <option value="minutes">Minutes</option>
-                                <option value="seconds">Seconds</option>
-                            </select>
-                        </div>
+                    <div class="modal-actions">
+                        <button type="submit">Create Poll</button>
+                        <button class="cancel" @click="closeModal">Cancel</button>
                     </div>
-
-                    <div class="visibility-options">
-                        <label>Select Visibility:</label>
-                        <div class="radio-group">
-                            <!-- Public Option -->
-                            <label class="radio-label">
-                                <input type="radio" id="public" value="public" v-model="visibility" aria-label="Public" />
-                                <span class="radio-custom"></span>
-                                <span class="radio-text">Public</span>
-                            </label>
-
-                            <!-- Private Option -->
-                            <label class="radio-label">
-                                <input type="radio" id="private" value="private" v-model="visibility"
-                                    aria-label="Private" />
-                                <span class="radio-custom"></span>
-                                <span class="radio-text">Private</span>
-                            </label>
-                        </div>
-                    </div>
-                    <button type="submit">Create Poll</button>
-                    <button class="cancel" @click="closeModal">Cancel</button>
                 </form>
             </div>
         </div>
@@ -107,6 +113,7 @@ export default {
             validTill: null, // Add a new property for the "Valid Till" time
             selectedOption: [],
             countdownTimers: [], // Store individual countdown timers for each poll
+            showInMypoll: true,
         };
     },
     mounted() {
@@ -163,6 +170,7 @@ export default {
                 createdAt: now, // Store the creation time
                 validTill: new Date(now.getTime() + this.totalTimeInSeconds * 1000),
                 status: 'open', // Set the status to 'open' when creating the poll
+
             };
             // Calculate the "Valid Till" time by adding user-inputted time to the current date and time
             this.validTill = new Date(now.getTime() + this.totalTimeInSeconds * 1000);
@@ -177,6 +185,7 @@ export default {
                     this.toast.success("Poll created successfully!");
                     // Add the new poll to the polls array
                     this.polls.push(newPoll);
+                    this.showInMypoll = this.visibility === 'private';
                 })
                 .catch((error) => {
                     // Handle errors here
@@ -258,6 +267,7 @@ export default {
 
 <style scoped>
 .modal {
+    font-family: 'Ubuntu', sans-serif;
     position: fixed;
     top: 0;
     left: 0;
@@ -272,7 +282,7 @@ export default {
     /* Enable scrolling if the content is too long */
 }
 
-.modal-open {
+.modal-content-inner {
     display: flex;
 }
 
@@ -281,16 +291,25 @@ export default {
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    width: 80%;
-    max-width: 600px;
+    width: 60%;
     text-align: center;
-    max-height: 80vh;
+    max-height: 85vh;
     overflow-y: auto;
 }
 
+.sections-container {
+    display: flex;
+}
+
+.left-section,
+.right-section {
+    flex: 1;
+    /* Each section takes up 50% of the available width */
+    padding: 20px;
+}
+
 .modal input {
-    margin-left: 15px;
-    width: 50%;
+    width: 100%;
     margin-bottom: 5px;
     padding: 10px;
 }
@@ -313,14 +332,15 @@ label {
     color: black;
 }
 
-.modal-content label {
-    text-align: right;
-    margin-right: 10px;
+.modal-content input[type="text"] {
+    margin-left: 10px;
 }
 
-.modal-content input[type="text"] {
-    width: 65%;
-    margin-left: 10px;
+.modal-content h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #007bff;
+    /* Change the color to your preferred style */
 }
 
 .option-inputs .option-input button[type="button"] {
@@ -346,6 +366,8 @@ label {
 
 .addbutton {
     background-color: #28a745 !important;
+    display: flex;
+    margin-left: 18px;
     color: white;
 }
 
@@ -382,20 +404,20 @@ label {
     margin-right: 10px;
 }
 
-/* Radio button styles */
 .radio-group {
-    align-items: center;
+    display: flex;
 }
 
-.radio-label input[type="radio"] {
-    display: none;
-}
 
 .radio-label {
     display: flex;
     align-items: center;
     cursor: pointer;
-    margin-right: 20px;
+}
+
+/* Style for each radio button */
+.radio-label input[type="radio"] {
+    display: none;
 }
 
 .radio-custom {
@@ -423,17 +445,14 @@ label {
     transform: translate(-50%, -50%);
 }
 
-.radio-custom {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #007bff;
-    border-radius: 50%;
-    margin-right: 5px;
-    position: relative;
+/* Add some margin to the last radio button to create spacing */
+.radio-label:last-child {
+    margin-right: 0;
 }
 
-.radio-label input[type="radio"] {
-    display: none;
+/* Style for radio buttons label text */
+.radio-text {
+    margin-right: 10px;
 }
 
 .visibility-options .radio-label:last-child {
@@ -450,15 +469,21 @@ label {
     margin-left: 20px;
 }
 
+.visibility-options button[type="button"]:last-child {
+    margin-left: 0;
+}
+
 .visibility-options button[type="button"]:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+
 .visibility-options button.cancel {
     background-color: #dc3545;
     margin-left: 10px;
 }
+
 
 .option-inputs {
     margin-top: 10px;
@@ -470,9 +495,7 @@ label {
 
 .option-input-container {
     display: flex;
-    align-items: center;
-    margin-left: 75px;
-    /* Align label and input on the left, and button on the right */
+    width: 115%;
 }
 
 .option-input-container label {
@@ -480,7 +503,7 @@ label {
 }
 
 .option-input-container input[type="text"] {
-    width: 65%;
+    width: 75%;
     margin-left: 10px;
 
 }
@@ -505,23 +528,65 @@ label {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
+/* Style for each timer input */
 .custom-timer-input {
     display: flex;
-    align-items: center;
-    margin-top: 10px;
-
+    flex-direction: row;
+    margin-top: 50px;
+    /* text-align: left; */
 }
 
-/* Style for each timer input */
-.timer-input select,
-.timer-input input[type="number"] {
+.timer-input1 input[type="number"] {
     padding: 10px;
     width: 60%;
-    /* Make the input fields take the full width */
+    /* Adjust the width for the timer input */
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 14px;
     background-color: #fff;
     color: #333;
+}
+
+.timer-input2 select,
+.timer-input2 input[type="number"] {
+    padding: 10px;
+    width: 100%;
+    /* Adjust the width for the time unit input */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: #fff;
+    color: #333;
+    margin-right: 40px;
+    padding-right: 24px;
+}
+
+.left-section {
+    flex: 1;
+    /* Each section takes up 50% of the available width */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.input-label {
+    text-align: center;
+
+}
+
+.option-input {
+    display: flex;
+    align-items: center;
+}
+
+.option-input-container {
+    display: flex;
+    align-items: center;
+}
+
+.option-input-container label {
+    margin-right: 10px;
+    align-self: flex-start;
+    /* Align label to the left */
 }
 </style>

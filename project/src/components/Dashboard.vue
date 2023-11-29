@@ -1,33 +1,35 @@
 <template>
-    <Navbar />
-    <!-- Sorting Button -->
-    <div class="sort-button-container">
-        <label class="sort-label" for="poll-sort">Sort by:</label>
-        <select id="poll-sort" v-model="selectedSort">
-            <option value="all">All</option>
-            <option value="live">Live Polls</option>
-            <option value="expired">Expired Polls</option>
-        </select>
-    </div>
-    <!-- Poll Card -->
-    <div class="poll-card-container">
-        <div class="poll-card" v-for="(poll, index) in sortedPolls" :key="index"
-            :class="{ 'expired-poll': isPollExpired(poll) }">
-            <h3>{{ poll.question }}</h3>
-            <div class="countdown-timer" :class="countdownTimerClass(poll)">{{ poll.countdownTimer }}</div>
+    <div>
+        <Navbar />
+        <!-- Sorting Button -->
+        <div class="sort-button-container">
+            <label class="sort-label" for="poll-sort">Sort by:</label>
+            <select id="poll-sort" v-model="selectedSort">
+                <option value="all">All</option>
+                <option value="live">Live Polls</option>
+                <option value="expired">Expired Polls</option>
+            </select>
+        </div>
+        <!-- Poll Card (for Public Polls) -->
+        <div class="poll-card-container">
+            <div class="poll-card" v-for="(poll, index) in publicPolls" :key="index"
+                :class="{ 'expired-poll': isPollExpired(poll) }">
+                <h3>{{ poll.question }}</h3>
+                <div class="countdown-timer" :class="countdownTimerClass(poll)">{{ poll.countdownTimer }}</div>
 
-            <div class="poll-options" :class="{ 'expired-options': isPollExpired(poll) }">
-                <p v-for="(option, optionIndex) in poll.options" :key="optionIndex"
-                    @click="selectOption(index, optionIndex)" :class="{ selected: isSelected(index, optionIndex) }">
-                    {{ option }}
-                </p>
-            </div>
-            <div class="poll-details">
-                <div class="created-at custom-font">
-                    Created At: {{ formatDateTime(poll.createdAt) }}
+                <div class="poll-options" :class="{ 'expired-options': isPollExpired(poll) }">
+                    <p v-for="(option, optionIndex) in poll.options" :key="optionIndex"
+                        @click="selectOption(index, optionIndex)" :class="{ selected: isSelected(index, optionIndex) }">
+                        {{ option }}
+                    </p>
                 </div>
-                <div class="valid-till custom-font">
-                    Valid Till: {{ formatDateTime(poll.validTill) }}
+                <div class="poll-details">
+                    <div class="created-at custom-font">
+                        Created At: {{ formatDateTime(poll.createdAt) }}
+                    </div>
+                    <div class="valid-till custom-font">
+                        Valid Till: {{ formatDateTime(poll.validTill) }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -125,6 +127,15 @@ export default {
                 return this.polls.filter(poll => this.isPollExpired(poll));
             }
             return this.polls; // Default to "All" if something unexpected is selected
+        },
+        publicPolls() {
+            return this.sortedPolls.filter(poll => poll.visibility === 'public');
+        },
+        privatePolls() {
+            return this.sortedPolls.filter(poll => poll.visibility === 'private');
+        },
+        showMyPollSection() {
+            return this.selectedSort === 'all' || this.selectedSort === 'live';
         },
     },
     methods: {

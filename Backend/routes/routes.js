@@ -1,7 +1,7 @@
 var express = require("express");
 const userController = require("../controllers/user.js");
 const pollController = require("../controllers/poll.js");
-const voteController = require("../controllers/votes.js")
+const voteController = require("../controllers/votes.js");
 
 const router = express.Router();
 
@@ -12,8 +12,8 @@ router.get("/api/polls", pollController.getAllPolls);
 router.post("/register", userController.registerUser);
 router.post("/login", userController.loginUser);
 router.post("/api/polls", pollController.createPoll);
-router.post("/api/votes",voteController.votes);
+router.post("/api/votes", voteController.votes);
 
-
+router.post("/dashboard", pollController.voteOnPoll);
 
 module.exports = router;

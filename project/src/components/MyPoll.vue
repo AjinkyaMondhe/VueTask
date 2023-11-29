@@ -4,7 +4,7 @@
         <div class="mypolls-container">
             <div class="poll-list-column">
                 <h1 class="header">My Polls</h1>
-
+                <button v-if="selectedPoll" @click="deletePoll" class="delete-button">Delete Poll</button>
                 <ul class="poll-list">
                     <li v-for="(poll, index) in polls" :key="poll._id"
                         :class="{ 'selected-poll': index === selectedQuestionIndex }" @click="showPollDetails(poll, index)"
@@ -46,7 +46,6 @@
         </div>
     </div>
 </template>
-
 <script>
 import axios from "axios";
 import Navbar from './Navbar.vue';
@@ -77,10 +76,46 @@ export default {
         showPollDetails(poll, index) {
             this.selectedPoll = poll;
             this.selectedQuestionIndex = index;
+
+            // Fetch the options for the selected poll
+            axios
+                .get(`http://localhost:3000/api/polls/${poll._id}`)
+                .then((response) => {
+                    this.selectedPoll.options = response.data;
+                })
+                .catch((error) => {
+                    console.error("Error fetching poll options:", error);
+                });
         },
         formatDate(dateTime) {
             const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
             return new Date(dateTime).toLocaleString(undefined, options);
+        },
+        deletePoll() {
+            if (this.selectedPoll) {
+                const pollId = this.selectedPoll._id;
+
+                // Make an API call to delete the poll
+                axios
+                    .delete(`http://localhost:3000/api/polls/${pollId}`)
+                    .then(() => {
+                        // Remove the deleted poll from the local array
+                        this.polls = this.polls.filter(poll => poll._id !== pollId);
+
+                        // Clear the selected poll and reset the selectedQuestionIndex
+                        this.selectedPoll = null;
+                        this.selectedQuestionIndex = -1;
+
+                        // Notify the user that the poll was successfully deleted (you can use a toast message or another notification method)
+                        console.log("Poll successfully deleted.");
+                    })
+                    .catch((error) => {
+                        console.error("Error deleting poll:", error);
+                    });
+            } else {
+                // Notify the user that no poll is selected (you can use a toast message or another notification method)
+                console.log("No poll selected to delete.");
+            }
         },
     },
     computed: {
@@ -120,10 +155,8 @@ export default {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Nunito', sans-serif;
 }
-
-
 
 .mypolls-container {
     display: flex;
@@ -315,5 +348,23 @@ export default {
     font-size: 18px;
     color: #333;
     font-weight: bold;
+}
+
+.delete-button {
+    position: absolute;
+    top: 75px;
+    right: 24px;
+    padding: 8px;
+    cursor: pointer;
+    background-color: #ff5c5c;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.delete-button:hover {
+    background-color: #e04141;
 }
 </style>

@@ -2,8 +2,15 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const cors = require("cors");
-const http = require("http").createServer(app); // Use createServer to bind Socket.IO
-const io = require("socket.io")(http);
+const http = require("http").createServer(app);
+const io = require("socket.io")(http, {
+  cors: {
+    origin: "http://localhost:8080",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+const path = require("path");
 
 mongoose.set("strictQuery", false);
 
@@ -12,7 +19,7 @@ const routes = require("./routes/routes");
 const pollController = require("./controllers/poll");
 
 const corsOptions = {
-  origin: "http://localhost:8080", // Whitelist your frontend URL
+  origin: "http://localhost:8080",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
   optionsSuccessStatus: 204,
@@ -20,13 +27,14 @@ const corsOptions = {
 
 // Use CORS middleware with options
 app.use(cors(corsOptions));
+
+// Routes
 app.use(express.json());
 app.use(routes);
 
+// Additional routes
 app.get("/api/polls", pollController.getAllPolls);
 app.post("/api/polls", pollController.createPoll);
-
-app.options("/register", cors());
 
 mongoose
   .connect("mongodb://0.0.0.0:27017/votingsys", {
@@ -43,20 +51,20 @@ mongoose
 io.on("connection", (socket) => {
   console.log("a user connected");
 
-  // Listen for the "chat message" event
-  socket.on("chat message", (message) => {
-    // Log the received message to the backend terminal
-    console.log("Message from a user: " + message);
-    // Broadcast the message to all connected clients
-    io.emit("chat message", "User: " + message);
+  socket.on("vote", (voterInfo) => {
+    // Handle the vote information here, for example:
+    console.log(
+      `User ${voterInfo.userId} voted for option ${voterInfo.optionId}`
+    );
+
+    // Broadcast a message to all clients or emit an event
+    io.emit("voteMessage", `User ${voterInfo.userId} successfully voted!`);
   });
 
   socket.on("disconnect", () => {
     console.log("user disconnected");
   });
 });
-
-app.use(cors({ origin: 'http://localhost:8080' }));
 
 http.listen(3000, function check(error) {
   if (error) {

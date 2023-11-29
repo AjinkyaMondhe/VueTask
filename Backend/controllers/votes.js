@@ -1,11 +1,10 @@
-// Import necessary modules and models
 const express = require("express");
 const Poll = require("../Model/pollSchema");
 
 // Define a route to handle votes
 exports.votes = async (req, res) => {
   const { pollId, optionIndex } = req.body;
-  const userId = req.user; // Assuming you have a way to identify the user (e.g., using a middleware)
+  const userId = req.user; 
 
   try {
     const poll = await Poll.findById(pollId);
